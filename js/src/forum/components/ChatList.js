@@ -2,7 +2,7 @@ import Component from 'flarum/Component';
 import ChatCreateModal from './ChatCreateModal';
 import ChatPreview from './ChatPreview';
 
-export default class ChatFrame extends Component {
+export default class ChatList extends Component {
     view(vnode) {
         const classes = ['ChatList'];
         if (app.chat.getFrameState('beingShownChatsList') || this.attrs.inPage) classes.push('toggled');

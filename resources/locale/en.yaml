@@ -1,6 +1,6 @@
 xelson-chat:
   forum:
-    pusher_not_found: Pusher or Websockets is required for chat to update in real time.
+    pusher_not_found: Eu to macaca.
     index:
       chat_link: Chat
     toolbar:

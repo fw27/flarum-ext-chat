@@ -40,15 +40,6 @@ export default class ChatHeader extends Component {
                           ]
                         : app.translator.trans('xelson-chat.forum.toolbar.title')}
                 </h2>
-                {!app.chat.getCurrentChat() || !app.session.user ? null : (
-                    <div
-                        className="icon"
-                        data-title={app.translator.trans('xelson-chat.forum.toolbar.chat.settings')}
-                        onclick={() => app.modal.show(ChatEditModal, { model: app.chat.getCurrentChat() })}
-                    >
-                        <i className="fas fa-cog"></i>
-                    </div>
-                )}
                 <div className="window-buttons">{this.windowButtonItems().toArray()}</div>
             </div>
         );
@@ -56,6 +47,21 @@ export default class ChatHeader extends Component {
 
     windowButtonItems() {
         const items = new ItemList();
+
+        // Add settings button first (leftmost)
+        if (app.chat.getCurrentChat() && app.session.user) {
+            items.add(
+                'settings',
+                <div
+                    className="icon"
+                    data-title={app.translator.trans('xelson-chat.forum.toolbar.chat.settings')}
+                    onclick={() => app.modal.show(ChatEditModal, { model: app.chat.getCurrentChat() })}
+                >
+                    <i className="fas fa-cog"></i>
+                </div>,
+                100 // High priority to appear first
+            );
+        }
 
         items.add(
             'sound',

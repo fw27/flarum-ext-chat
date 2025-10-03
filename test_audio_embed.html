@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Embed Test</title>
+    <style>
+        .message {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin: 10px;
+            max-width: 400px;
+        }
+        
+        audio {
+            max-width: 290px !important;
+            width: 100% !important;
+            height: 32px !important;
+            display: block !important;
+            margin: 8px 0 !important;
+            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing Audio Embed Functionality</h1>
+    
+    <div class="message" id="test-message">
+        <p>Check out this audio file: https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3</p>
+    </div>
+    
+    <script>
+        // Simulating the handleAudioEmbeds function
+        function handleAudioEmbeds(element, content) {
+            // Audio file extensions to detect
+            const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+            
+            // Find all links in the element
+            const links = element.querySelectorAll('a');
+            
+            links.forEach(link => {
+                const href = link.href;
+                if (!href) return;
+                
+                // Check if this link points to an audio file
+                const isAudioFile = audioExtensions.some(ext => 
+                    href.toLowerCase().includes(ext.toLowerCase())
+                );
+                
+                if (isAudioFile) {
+                    // Check if we already embedded this audio file
+                    if (link.nextElementSibling && link.nextElementSibling.tagName === 'AUDIO') {
+                        return;
+                    }
+                    
+                    // Create audio element
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.preload = 'metadata';
+                    audio.style.maxWidth = '290px';
+                    audio.style.width = '100%';
+                    audio.style.display = 'block';
+                    audio.style.marginTop = '8px';
+                    audio.style.borderRadius = '8px';
+                    audio.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    
+                    // Set the source
+                    audio.src = href;
+                    
+                    // Insert the audio element after the link
+                    link.parentNode.insertBefore(audio, link.nextSibling);
+                    
+                    // Optionally hide the original link or modify its text
+                    link.style.display = 'block';
+                    link.style.marginBottom = '4px';
+                    link.style.fontSize = '0.9em';
+                    link.style.opacity = '0.7';
+                }
+            });
+            
+            // Also handle plain text URLs that might not be converted to links yet
+            const textContent = element.textContent || element.innerText;
+            if (textContent) {
+                const urlPattern = /https?:\/\/[^\s]+/g;
+                const urls = textContent.match(urlPattern);
+                
+                if (urls) {
+                    urls.forEach(url => {
+                        const isAudioFile = audioExtensions.some(ext => 
+                            url.toLowerCase().includes(ext.toLowerCase())
+                        );
+                        
+                        if (isAudioFile) {
+                            // Check if this URL is already embedded
+                            const existingAudios = element.querySelectorAll('audio');
+                            let alreadyEmbedded = false;
+                            
+                            existingAudios.forEach(audio => {
+                                if (audio.src === url) {
+                                    alreadyEmbedded = true;
+                                }
+                            });
+                            
+                            if (!alreadyEmbedded) {
+                                // Create audio element for plain text URL
+                                const audio = document.createElement('audio');
+                                audio.controls = true;
+                                audio.preload = 'metadata';
+                                audio.style.maxWidth = '290px';
+                                audio.style.width = '100%';
+                                audio.style.display = 'block';
+                                audio.style.marginTop = '8px';
+                                audio.style.borderRadius = '8px';
+                                audio.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                                audio.src = url;
+                                
+                                // Add a label for the audio
+                                const label = document.createElement('div');
+                                label.style.fontSize = '0.8em';
+                                label.style.opacity = '0.7';
+                                label.style.marginBottom = '4px';
+                                label.textContent = '🎵 Audio: ' + url.split('/').pop();
+                                
+                                element.appendChild(label);
+                                element.appendChild(audio);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Test the function
+        setTimeout(() => {
+            const testElement = document.getElementById('test-message');
+            handleAudioEmbeds(testElement, testElement.textContent);
+        }, 1000);
+    </script>
+</body>
+</html>

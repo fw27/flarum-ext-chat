@@ -8,7 +8,11 @@
         }
     }
 
-    background-color: @color-chatlist-bg;
+    // Glass morphism background
+    background: @glass-secondary;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid @glass-border;
     min-width: 70px;
 
     .previewBody {
@@ -20,7 +24,10 @@
         display: flex;
         justify-content: flex-end;
         height: 35px;
-        background-color: @color-chatlist-hr;
+        background: @glass-primary;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid @glass-border;
         position: relative;
 
         p {
@@ -31,15 +38,18 @@
         .icon {
             width: 28px;
             line-height: 35px;
-            color: #3a3a3a;
+            color: @glass-text-muted;
             vertical-align: middle;
             text-align: center;
             font-size: 12pt;
             cursor: pointer;
             position: relative;
+            transition: all 0.2s ease;
 
             &:hover {
-                color: #FFF;
+                color: @glass-text;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 6px;
             }
         }
 
@@ -129,6 +139,7 @@
             font-weight: bold;
             z-index: 5;
             white-space: nowrap;
+            color: @glass-text; // Better text color
 
             i {
                 margin-right: 3px;
@@ -138,21 +149,21 @@
         .message {
             overflow: hidden;
             text-overflow: ellipsis;
-            color: #929292;
+            color: @glass-text-muted; // Better muted text color
             white-space: nowrap;
             margin-left: 7px;
             width: 120%;
 
             .media {
-                color: #3ab6ff;
+                color: rgba(58, 182, 255, 0.8); // Adjusted for glass theme
             }
 
             .sender {
-                color: @color-chat-hovered;
+                color: @glass-text;
             }
 
             .empty {
-                color: #bdbfc4;
+                color: @glass-text-muted;
             }
         }
 
@@ -214,7 +225,19 @@
                 border-radius: 15px;
                 padding: 5px;
                 width: auto;
-                background-color: #fff;
+                // Glass morphism for chat previews
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
+            
+                &:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
 
                 .timestamp {
                     opacity: 1;
@@ -277,13 +300,25 @@
             width: auto;
             border-radius: 15px;
             padding: 5px;
-            background-color: #ffffff;
+            // Glass morphism for add button
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             .user-select(none);
+            transition: all 0.2s ease;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
 
             &:before {
                 content: "+";
                 font-size: 48pt;
-                color: #31394652;
+                color: @glass-text-muted;
                 line-height: 0.5;
                 display: block;
                 text-align: center;
@@ -295,7 +330,12 @@
             border-radius: 15px;
             padding: 5px;
             width: auto;
-            background-color: #fff;
+            // Glass morphism for chat previews
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
             .timestamp {
                 opacity: 1;
@@ -322,70 +362,93 @@
 
     .input-wrapper {
         display: none;
-        background-color: #ffffff;
-        border-radius: 15px;
-        margin: 5px 10px;
+        position: relative;
+        // Fixed glass morphism styling for search bar
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        margin: 8px 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        
+        &:focus-within {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+        }
 
         &:before {
-            font-family: 'Font Awesome 5 Free';
+            font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             content: "\f002";
-            position: relative;
-            margin: 5px;
-            color: #9ba0ab;
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: @glass-text-muted;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 2;
         }
 
         #chat-find {
-            resize: none;
-            width: 80%;
-            border-radius: 8px;
-            background-color: #ffffff;
-            outline: none;
-            border: none;
-            height: 25px;
-            overflow: hidden;
-            white-space: nowrap;
+            resize: none !important;
+            width: 100% !important;
+            border-radius: 6px !important;
+            background-color: transparent !important;
+            outline: none !important;
+            border: none !important;
+            height: 15px !important;
+            max-height: 15px !important;
+            min-height: 15px !important;
+            padding: 8px 12px 8px 36px !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            color: @glass-text !important;
+            font-size: 14px !important;
+            line-height: 1.2 !important;
 
-            &:focus::placeholder {
-                color: #adadad
+            &::placeholder {
+                color: @glass-text-muted !important;
+                opacity: 0.8 !important;
             }
 
-            &:focus:-moz-placeholder {
-                color: #adadad
-            }
-
-            &:focus::-moz-placeholder {
-                color: #adadad
-            }
-
-            &:focus:-ms-input-placeholder {
-                color: #adadad
-            }
-
-            &:focus::-webkit-input-placeholder {
-                color: #adadad
+            &:focus {
+                &::placeholder {
+                    color: @glass-text-muted !important;
+                    opacity: 0.6 !important;
+                }
             }
         }
     }
 
     .panel-add {
         padding: 5px;
-        background-color: #ffffff;
+        // Glass morphism for add button
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         margin: 8px;
         border-radius: 100px;
-        box-shadow: none;
-        .transition(box-shadow .1s);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        .transition(all .2s ease);
 
         &:before {
             content: "+";
             font-size: 48pt;
-            color: #31394652;
+            color: @glass-text-muted;
             line-height: 0.5;
             text-align: center;
         }
 
         &:hover {
-            box-shadow: 0 0 0 3px @color-chat-hovered;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     }
 

@@ -49,8 +49,11 @@ export default class ChatViewport extends Component {
 
         setTimeout(() => {
             const element = this.element;
-
-            this.getChatWrapper().scrollTop = element.scrollHeight - element.clientHeight - oldScroll;
+            const chatWrapper = this.getChatWrapper();
+            
+            if (element && chatWrapper && element.scrollHeight !== undefined && element.clientHeight !== undefined) {
+                chatWrapper.scrollTop = element.scrollHeight - element.clientHeight - oldScroll;
+            }
         }, 200);
     }
 
@@ -115,27 +118,35 @@ export default class ChatViewport extends Component {
         ) : null;
     }
     getChatWrapper() {
-        return app.screen() === 'phone' && app.current.matches(ChatPage)
-            ? document.documentElement
-            : document.querySelector('.ChatViewport .wrapper');
+        if (app.screen() === 'phone' && app.current.matches(ChatPage)) {
+            return document.documentElement;
+        }
+        const wrapper = document.querySelector('.ChatViewport .wrapper');
+        return wrapper || null;
     }
 
     isFastScrollAvailable() {
+        if (!this.state || !this.model) return false;
         let chatWrapper = this.getChatWrapper();
+        if (!chatWrapper) return false;
+        
         return (
             (this.state.newPushedPosts ||
                 this.model.unreaded() >= 30 ||
-                (chatWrapper && chatWrapper.scrollHeight > 2000 && chatWrapper.scrollTop < chatWrapper.scrollHeight - 2000)) &&
+                (chatWrapper.scrollHeight > 2000 && chatWrapper.scrollTop < chatWrapper.scrollHeight - 2000)) &&
             !this.nearBottom()
         );
     }
 
     fastScroll(e) {
+        if (!this.model) return;
         if (this.model.unreaded() >= 30) this.fastMessagesFetch(e);
         else {
             let chatWrapper = this.getChatWrapper();
-            chatWrapper.scrollTop = Math.max(chatWrapper.scrollTop, chatWrapper.scrollHeight - 3000);
-            this.scrollToBottom();
+            if (chatWrapper) {
+                chatWrapper.scrollTop = Math.max(chatWrapper.scrollTop, chatWrapper.scrollHeight - 3000);
+                this.scrollToBottom();
+            }
         }
     }
 
@@ -165,35 +176,53 @@ export default class ChatViewport extends Component {
     }
 
     wrapperOnBeforeUpdate(vnode, vnodeNew) {
-        super.onbeforeupdate(vnode, vnodeNew);
-        if (!this.state.autoScroll && this.nearBottom() && this.state.newPushedPosts) {
+        try {
+            super.onbeforeupdate(vnode, vnodeNew);
+            if (!this.state || !this.state.autoScroll || !this.nearBottom() || !this.state.newPushedPosts) {
+                return;
+            }
             this.scrollAfterUpdate = true;
+        } catch (e) {
+            console.warn('ChatViewport wrapperOnBeforeUpdate error:', e);
         }
     }
 
     wrapperOnUpdate(vnode) {
-        super.onupdate(vnode);
-        let el = vnode.dom;
-        if (this.model && this.state.scroll.autoScroll) {
-            if (this.autoScrollTimeout) clearTimeout(this.autoScrollTimeout);
-            this.autoScrollTimeout = setTimeout(this.scrollToBottom.bind(this, true), 100);
-        }
-        if (el.scrollTop <= 0) el.scrollTop = 1;
-        this.checkUnreaded();
+        try {
+            super.onupdate(vnode);
+            let el = vnode.dom;
+            if (!el) return;
+            
+            if (this.model && this.state && this.state.scroll.autoScroll) {
+                if (this.autoScrollTimeout) clearTimeout(this.autoScrollTimeout);
+                this.autoScrollTimeout = setTimeout(this.scrollToBottom.bind(this, true), 100);
+            }
+            if (el.scrollTop <= 0) el.scrollTop = 1;
+            this.checkUnreaded();
 
-        if (this.scrollAfterUpdate) {
-            this.scrollAfterUpdate = false;
-            this.scrollToBottom();
+            if (this.scrollAfterUpdate) {
+                this.scrollAfterUpdate = false;
+                this.scrollToBottom();
+            }
+        } catch (e) {
+            console.warn('ChatViewport wrapperOnUpdate error:', e);
         }
     }
 
     wrapperOnRemove(vnode) {
-        super.onremove(vnode);
-        vnode.dom.removeEventListener('scroll', this.boundScrollListener);
+        try {
+            super.onremove(vnode);
+            if (this.boundScrollListener && vnode.dom) {
+                vnode.dom.removeEventListener('scroll', this.boundScrollListener);
+            }
+        } catch (e) {
+            console.warn('ChatViewport wrapperOnRemove error:', e);
+        }
     }
 
     wrapperOnScroll(e) {
         const el = app.current.matches(ChatPage) ? document.documentElement : this.element;
+        if (!el || !this.state) return;
 
         this.state.scroll.oldScroll = el.scrollHeight - el.clientHeight - el.scrollTop;
 
@@ -233,7 +262,7 @@ export default class ChatViewport extends Component {
             let list = app.chat.getChatMessages((mdl) => mdl.chat() == this.model && mdl.created_at() >= this.model.readed_at() && !mdl.isReaded);
 
             for (const message of list) {
-                let msg = document.querySelector(`.message-wrapper[data-id="${message.id()}"`);
+                let msg = document.querySelector(`.message-wrapper[data-id="${message.id()}"]`);
                 if (msg && wrapper.scrollTop + wrapper.offsetHeight >= msg.offsetTop) {
                     message.isReaded = true;
 
@@ -269,9 +298,11 @@ export default class ChatViewport extends Component {
         let chatWrapper = this.getChatWrapper();
         if (chatWrapper) {
             const notAtBottom = !force && this.atBottom();
-            const fewMessages =
-                app.current.matches(ChatPage) &&
-                document.querySelector('.ChatViewport .wrapper').scrollHeight + 200 < document.documentElement.clientHeight;
+            let fewMessages = false;
+            if (app.current.matches(ChatPage)) {
+                const wrapper = document.querySelector('.ChatViewport .wrapper');
+                fewMessages = wrapper && wrapper.scrollHeight + 200 < document.documentElement.clientHeight;
+            }
             if (notAtBottom || fewMessages) return;
 
             const time = this.pixelsFromBottom() < 80 ? 0 : 250;
@@ -279,7 +310,9 @@ export default class ChatViewport extends Component {
             $(chatWrapper)
                 .stop()
                 .animate({ scrollTop: chatWrapper.scrollHeight }, time, 'swing', () => {
-                    this.state.scroll.autoScroll = false;
+                    if (this.state) {
+                        this.state.scroll.autoScroll = false;
+                    }
                     this.scrolling = false;
                 });
         }
@@ -307,15 +340,26 @@ export default class ChatViewport extends Component {
     }
 
     nearBottom() {
-        return this.pixelsFromBottom() <= 500;
+        try {
+            return this.pixelsFromBottom() <= 500;
+        } catch (e) {
+            return false;
+        }
     }
 
     atBottom() {
-        return this.pixelsFromBottom() <= 5;
+        try {
+            return this.pixelsFromBottom() <= 5;
+        } catch (e) {
+            return false;
+        }
     }
 
     pixelsFromBottom() {
         const element = app.current.matches(ChatPage) ? document.documentElement : this.element;
+        if (!element || element.scrollHeight === undefined || element.scrollTop === undefined || element.clientHeight === undefined) {
+            return 0;
+        }
         return Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight);
     }
 }

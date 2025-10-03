@@ -1,7 +1,7 @@
 .NeonChatFrame {
     position: fixed;
     bottom: 0;
-    z-index: @zindex-composer - 10;
+    z-index: @zindex-tooltip - 1;
     max-width: 100%;
     color: #000;
 
@@ -31,32 +31,43 @@
     .button-fixed-maximize {
         display: none;
 
-        background-color: @color-chatlist-hr;
-        &:hover
-        {
-            filter: brightness(125%);
+        // Glass morphism floating button
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 2px 16px rgba(0, 0, 0, 0.05);
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        .unreaded
-        {
+        .unreaded {
             top: -5px;
             right: -5px;
         }
 
-        width: 48px;
-        height: 48px;
-        border-radius: 48px;
-        line-height: 48px;
+        width: 56px;
+        height: 56px;
+        border-radius: 56px;
+        line-height: 56px;
         text-align: center;
+        transition: all 0.3s ease;
 
         position: absolute;
-        right: 15px;
+        right: 20px;
         bottom: 30px;
-        padding-top: 2px;
+        padding-top: 0;
 
         i {
-            color: white;
-            font-size: 18pt;
+            color: @glass-text;
+            font-size: 20pt;
         }
     }
 
@@ -65,11 +76,23 @@
         position: relative;
         float: right;
         max-width: 100%;
-        background-color: white;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+        
+        // Glass morphism styling - dark tone further lightened
+        background: rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 2px 16px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        
         outline: none;
         height: 100%;
         width: 100%;
+        overflow: hidden;
 
         .censored {
             box-shadow: inset 0px 0px 0px 1000px #dedede;
@@ -88,11 +111,28 @@
         }
 
         #chat-panel {
-            width: 650px;
+            width: 450px; // Reduced from 650px
 
             @media @phone
             {
                 width: 100%;
+            }
+            
+            // Global video constraint within chat panel
+            video {
+                max-width: 290px !important; // Force videos to be smaller than container
+                width: 290px !important;
+                height: auto !important;
+                display: block !important;
+                box-sizing: border-box !important;
+            }
+            
+            // Target videos in any nested elements
+            * video {
+                max-width: 290px !important;
+                width: 290px !important;
+                height: auto !important;
+                display: block !important;
             }
         }
 
@@ -142,49 +182,6 @@
         box-shadow: 0 0 4px 0px #000;
         font-weight: bold;
     }
-}
-
-icon.Chat-FullColor {
-    background: none !important;
-    color: #000;
-}
-
-.Color-Input {
-    position: relative;
-
-    color {
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        background-color: #000;
-        display: block;
-        border-radius: 100px;
-        right: 10px;
-        top: 25%;
-    }
-}
-
-.Icon-Input {
-    position: relative;
-
-    icon {
-        .fa();
-        position: absolute;
-        display: block;
-        border-radius: 100px;
-        right: 10px;
-        top: 25%;
-        font-size: 13pt;
-    }
-}
-
-input[type="color"][color]:after
-{
-    content: attr(color);
-    top: 25%;
-    position: absolute;
-    background: white;
-    width: 90%;
 }
 
 .moving {

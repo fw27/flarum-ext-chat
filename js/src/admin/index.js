@@ -30,17 +30,6 @@ app.initializers.add('xelson-chat', (app) => {
             label: app.translator.trans('xelson-chat.admin.settings.display.censor'),
             type: 'switch',
         })
-        /*
-        .registerSetting(function () {
-            return (
-                <div className="Form-group">
-                <label>{label}</label>
-                <div className="helpText">{help}</div>
-                <textarea bidi={this.setting('my_setting_name')}>{this.setting('my_setting_name')()}</textarea>
-                </div>
-            );
-            })
-        */
         .registerPermission(
             {
                 icon: 'fas fa-eye',

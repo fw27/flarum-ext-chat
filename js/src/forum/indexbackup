@@ -15,41 +15,8 @@ chat.setAttribute('id', 'chat');
 document.body.append(chat);
 
 app.initializers.add('xelson-chat', (app) => {
-  
-
-const oldAlertsShow = app.alerts.show;
-app.alerts.show = function (type, message, ...args) {
-    if (message && message.includes('Pusher or Websockets')) {
-        return; // ignore this warning entirely
-    }
-    return oldAlertsShow.call(this, type, message, ...args);
-};
-
-    app.pusher = true;
-
     app.store.models.chats = Chat;
     app.store.models.chatmessages = Message;
-
-
-
-    if (app.realtime) {
-    // Listen for new messages
-    app.realtime.on('neon-chat.message.created', (message) => {
-        // Add message to chat state
-        app.chat.addMessage(message);
-    });
-
-    // Listen for updated messages
-    app.realtime.on('neon-chat.message.updated', (message) => {
-        app.chat.updateMessage(message);
-    });
-
-    // Listen for deleted messages
-    app.realtime.on('neon-chat.message.deleted', (message) => {
-        app.chat.removeMessage(message.id);
-    });
-}
-
 
     function pivot(name, id, attr, transform) {
         pivot.hasOne = function (name, id, attr) {
@@ -86,11 +53,10 @@ app.alerts.show = function (type, message, ...args) {
 
         if ('Notification' in window && app.chat.getFrameState('notify')) Notification.requestPermission();
 
-       
-	// new Blomstra Realtime trigger
-	if (app.realtime) {
-	    app.realtime.emit('neon-chat.message.created', message);
-	}
+        if (!app.pusher) {
+            app.alerts.show({ type: 'error' }, app.translator.trans('xelson-chat.forum.pusher_not_found'));
+        }
+
         app.chat.apiFetchChats();
     });
 

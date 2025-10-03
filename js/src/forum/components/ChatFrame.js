@@ -18,10 +18,13 @@ export default class ChatFrame extends Component {
     }
 
     calcHeight() {
+        if (!app.chat) return '30px';
+        
         if (!app.chat.getFrameState('beingShown')) {
             return '30px';
         } else if (app.screen() !== 'phone') {
-            return app.chat.getFrameState('transform').y + 'px';
+            const transform = app.chat.getFrameState('transform');
+            return (transform && transform.y ? transform.y : 400) + 'px';
         } else {
             return '70vh';
         }
@@ -29,8 +32,10 @@ export default class ChatFrame extends Component {
 
     view(vnode) {
         if (app.current.matches(ChatPage)) return;
+        if (!app.chat) return null;
 
-        const style = { right: app.chat.getFrameState('transform').x + 'px', height: this.calcHeight() };
+        const transform = app.chat.getFrameState('transform') || { x: 0, y: 400 };
+        const style = { right: transform.x + 'px', height: this.calcHeight() };
 
         return (
             <div className={'NeonChatFrame ' + (app.chat.getFrameState('beingShown') ? '' : 'hidden')} style={style}>
@@ -52,18 +57,22 @@ export default class ChatFrame extends Component {
     }
 
     componentButtonFixedMaximize() {
+        if (!app.chat) return null;
+        
         let totalUnreaded = app.chat.getUnreadedTotal();
 
         return (
             <div className="button-fixed-maximize" onclick={this.toggleChat.bind(this)}>
                 {totalUnreaded ? <div className="unreaded">{totalUnreaded}</div> : null}
-                <i className="fas fa-cloud"></i>
+                <i className="fas fa-comments"></i>
             </div>
         );
     }
 
     toggleChat() {
-        app.chat.toggleChat();
+        if (app.chat) {
+            app.chat.toggleChat();
+        }
     }
 
     chatHeaderOnMouseDown(e) {
@@ -115,14 +124,20 @@ export default class ChatFrame extends Component {
     }
 
     chatMoveProcess(e) {
+        if (!this.element) return;
+        
         let move = { x: e.clientX - this.moveLast.x, y: e.clientY - this.moveLast.y };
         let right = parseInt(this.element.style.right) || 0;
         let nextPos = { x: right - move.x, y: this.element.offsetHeight - move.y };
 
-        if ((nextPos.x < window.innerWidth - this.element.querySelector('#chat').offsetWidth && move.x < 0) || (nextPos.x > 0 && move.x > 0))
+        const chatElement = this.element.querySelector('#chat');
+        if (!chatElement) return;
+
+        if ((nextPos.x < window.innerWidth - chatElement.offsetWidth && move.x < 0) || (nextPos.x > 0 && move.x > 0))
             this.element.style.right = nextPos.x + 'px';
 
-        if (this.element.querySelector('.ChatHeader').clientHeight < nextPos.y && nextPos.y < window.innerHeight - 100) {
+        const chatHeader = this.element.querySelector('.ChatHeader');
+        if (chatHeader && chatHeader.clientHeight < nextPos.y && nextPos.y < window.innerHeight - 100) {
             this.element.style.height = nextPos.y + 'px';
         }
 

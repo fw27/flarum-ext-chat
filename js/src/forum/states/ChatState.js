@@ -225,11 +225,31 @@ export default class ChatState {
         });
     }
 
+    findExistingPMChat(user1, user2) {
+        return this.getChats().find((model) => {
+            let users = model.users();
+            return model.type() === 0 && users.length === 2 && users.some((model) => model == user1) && users.some((model) => model == user2);
+        });
+    }
+
+    findAnyPMChatIncludingLeft(user1, user2) {
+        // Search in all chats including ones we've left (removed_at is set)
+        return this.chats.find((model) => {
+            let users = model.users();
+            return model.type() === 0 && users.length === 2 && users.some((model) => model == user1) && users.some((model) => model == user2);
+        });
+    }
+
     onChatChanged(model) {
         if (model == this.getCurrentChat()) return;
 
         this.setCurrentChat(model);
-        m.redraw.sync();
+        try {
+            m.redraw.sync();
+        } catch (e) {
+            console.warn('ChatState onChatChanged redraw error:', e);
+            m.redraw();
+        }
     }
 
     comporatorAscButZerosDesc(a, b) {
@@ -300,7 +320,33 @@ export default class ChatState {
         let element = model instanceof Model ? document.querySelector(`.NeonChatFrame .message-wrapper[data-id="${model.id()}"] .message`) : model;
 
         if (element) {
-            s9e.TextFormatter.preview(content, element);
+            try {
+                s9e.TextFormatter.preview(content, element);
+                
+                // Post-process to constrain video widths and handle audio files
+                setTimeout(() => {
+                    const videos = element.querySelectorAll('video');
+                    videos.forEach(video => {
+                        video.style.maxWidth = '290px';
+                        video.style.width = '290px';
+                        video.style.height = 'auto';
+                        video.style.display = 'block';
+                        video.style.boxSizing = 'border-box';
+                        video.style.borderRadius = '8px';
+                    });
+
+                    // Handle MP3 and other audio URLs
+                    this.handleAudioEmbeds(element, content);
+                }, 10); // Small delay to ensure DOM is updated
+            } catch (e) {
+                console.warn('TextFormatter preview error:', e);
+                // Fallback to setting innerHTML
+                element.innerHTML = content;
+                // Still try to handle audio embeds in fallback mode
+                setTimeout(() => {
+                    this.handleAudioEmbeds(element, content);
+                }, 10);
+            }
 
             // Workaround for user mentions that doesn't works properly
             $(element)
@@ -309,7 +355,11 @@ export default class ChatState {
                     let user = app.store.getBy('users', 'username', this.innerText.substring(1));
                     if (this && user) {
                         this.classList.remove('UserMention--deleted');
-                        m.render(this, <Link href={app.route.user(user)}>{this.innerText}</Link>);
+                        try {
+                            m.render(this, <Link href={app.route.user(user)}>{this.innerText}</Link>);
+                        } catch (e) {
+                            console.warn('UserMention render error:', e);
+                        }
                     }
                 });
 
@@ -326,6 +376,115 @@ export default class ChatState {
                     }
                 });
             })();
+        }
+    }
+
+    handleAudioEmbeds(element, content) {
+        // Audio file extensions to detect
+        const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+        
+        // Find all links in the element
+        const links = element.querySelectorAll('a');
+        
+        links.forEach(link => {
+            const href = link.href;
+            if (!href) return;
+            
+            // Check if this link points to an audio file
+            const isAudioFile = audioExtensions.some(ext => 
+                href.toLowerCase().includes(ext.toLowerCase())
+            );
+            
+            if (isAudioFile) {
+                // Check if we already embedded this audio file
+                if (link.nextElementSibling && link.nextElementSibling.tagName === 'AUDIO') {
+                    return;
+                }
+                
+                // Create audio element
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.style.maxWidth = '290px';
+                audio.style.width = '100%';
+                audio.style.height = '40px';
+                audio.style.minHeight = '40px';
+                audio.style.display = 'block';
+                audio.style.marginTop = '8px';
+                audio.style.marginBottom = '8px';
+                audio.style.borderRadius = '8px';
+                audio.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                audio.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                audio.style.outline = 'none';
+                
+                // Set the source
+                audio.src = href;
+                
+                // Insert the audio element after the link
+                link.parentNode.insertBefore(audio, link.nextSibling);
+                
+                // Optionally hide the original link or modify its text
+                link.style.display = 'block';
+                link.style.marginBottom = '4px';
+                link.style.fontSize = '0.9em';
+                link.style.opacity = '0.7';
+            }
+        });
+        
+        // Also handle plain text URLs that might not be converted to links yet
+        const textContent = element.textContent || element.innerText;
+        if (textContent) {
+            const urlPattern = /https?:\/\/[^\s]+/g;
+            const urls = textContent.match(urlPattern);
+            
+            if (urls) {
+                urls.forEach(url => {
+                    const isAudioFile = audioExtensions.some(ext => 
+                        url.toLowerCase().includes(ext.toLowerCase())
+                    );
+                    
+                    if (isAudioFile) {
+                        // Check if this URL is already embedded
+                        const existingAudios = element.querySelectorAll('audio');
+                        let alreadyEmbedded = false;
+                        
+                        existingAudios.forEach(audio => {
+                            if (audio.src === url) {
+                                alreadyEmbedded = true;
+                            }
+                        });
+                        
+                        if (!alreadyEmbedded) {
+                            // Create audio element for plain text URL
+                            const audio = document.createElement('audio');
+                            audio.controls = true;
+                            audio.preload = 'metadata';
+                            audio.style.maxWidth = '290px';
+                            audio.style.width = '100%';
+                            audio.style.height = '40px';
+                            audio.style.minHeight = '40px';
+                            audio.style.display = 'block';
+                            audio.style.marginTop = '8px';
+                            audio.style.marginBottom = '8px';
+                            audio.style.borderRadius = '8px';
+                            audio.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                            audio.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                            audio.style.outline = 'none';
+                            audio.src = url;
+                            
+                            // Add a label for the audio
+                            const label = document.createElement('div');
+                            label.style.fontSize = '0.8em';
+                            label.style.opacity = '0.7';
+                            label.style.marginBottom = '4px';
+                            label.textContent = '🎵 Audio: ' + url.split('/').pop();
+                            
+                            element.appendChild(label);
+                            element.appendChild(audio);
+                        }
+                    }
+                });
+            }
         }
     }
 

@@ -6,8 +6,6 @@ import Group from 'flarum/models/Group';
 
 import ChatModal from './ChatModal';
 import Stream from 'flarum/utils/Stream';
-import FA5IconInput from './FA5IconInput';
-import ColorInput from './ColorInput';
 
 export default class ChatEditModal extends ChatModal {
     oninit(vnode) {
@@ -121,34 +119,15 @@ export default class ChatEditModal extends ChatModal {
         this.$(e.target).find('.Dropdown').trigger('shown.bs.dropdown');
     }
 
-    formInputOnUpdate(vnode) {
-        $('.Chat-FullColor').css({ color: this.input.color(), backgroundColor: this.input.color() });
-    }
-
-    componentFormInputColor() {
-        return (
-            <ColorInput
-                title={app.translator.trans('xelson-chat.forum.chat.list.add_modal.form.color.label')}
-                desc={app.translator.trans('xelson-chat.forum.chat.list.add_modal.form.color.validator')}
-                stream={this.getInput().color}
-                placeholder={app.translator.trans('xelson-chat.forum.chat.list.add_modal.form.color.label')}
-                inputOnUpdate={this.formInputOnUpdate.bind(this)}
-            />
-        );
-    }
-
     componentFormInputIcon() {
-        return (
-            <FA5IconInput
-                title={app.translator.trans('xelson-chat.forum.chat.edit_modal.form.icon.label')}
-                desc={app.translator.trans('xelson-chat.forum.chat.edit_modal.form.icon.validator', {
-                    a: <a href="https://fontawesome.com/icons?m=free" tabindex="-1" target="blank" />,
-                })}
-                stream={this.getInput().icon}
-                placeholder="fas fa-bolt"
-                inputOnUpdate={this.formInputOnUpdate.bind(this)}
-            />
-        );
+        return this.componentFormIcon({
+            title: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.icon.label'),
+            desc: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.icon.validator', {
+                a: <a href="https://fontawesome.com/icons?m=free" tabindex="-1" target="blank" />,
+            }),
+            stream: this.getInput().icon,
+            placeholder: 'fas fa-bolt',
+        });
     }
 
     componentFormInputTitle() {
@@ -157,6 +136,15 @@ export default class ChatEditModal extends ChatModal {
             desc: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.title.validator'),
             stream: this.getInput().title,
             placeholder: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.title.label'),
+        });
+    }
+
+    componentFormInputColor() {
+        return this.componentFormColor({
+            title: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.color.label'),
+            desc: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.color.validator'),
+            stream: this.getInput().color,
+            placeholder: app.translator.trans('xelson-chat.forum.chat.edit_modal.form.color.label'),
         });
     }
 

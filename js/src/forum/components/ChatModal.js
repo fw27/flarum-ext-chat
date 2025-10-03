@@ -4,7 +4,6 @@ import Stream from 'flarum/utils/Stream';
 import classList from 'flarum/utils/classList';
 import { fa5IconsList } from '../resources';
 import highlight from 'flarum/helpers/highlight';
-import FA5IconInput from './FA5IconInput';
 
 export default class ChatModal extends Modal {
     oninit(vnode) {
@@ -15,6 +14,8 @@ export default class ChatModal extends Modal {
         app.search.neonchat = { usersSelected: [] };
         this.usersSelected = app.search.neonchat.usersSelected;
 
+        app.chat.saveFrameState('beingShown', false);
+
         this.input = {
             title: Stream(''),
             color: Stream(''),
@@ -24,6 +25,11 @@ export default class ChatModal extends Modal {
                 lastInput: null,
             },
         };
+    }
+
+    hide() {
+        super.hide();
+        app.chat.saveFrameState('beingShown', true);
     }
 
     onremove(vnode) {
@@ -98,6 +104,80 @@ export default class ChatModal extends Modal {
                 <ChatSearchUser state={app.search} />
             </div>,
         ];
+    }
+
+    componentFormIcon(options) {
+        return [
+            options.title ? <label>{options.title}</label> : null,
+            <div className="IconSearch">
+                {options.desc ? <label>{options.desc}</label> : null}
+                <div className="Icon-Input IconSearchResult">
+                    <input
+                        class="FormControl"
+                        type="text"
+                        bidi={options.stream}
+                        placeholder={options.placeholder}
+                        onupdate={this.formInputOnUpdate.bind(this)}
+                        onfocus={() => (this.inputIconHasFocus = true)}
+                        onclick={() => (this.inputIconHasFocus = true)}
+                        onkeypress={(e) => (this.inputIconHasFocus = !(e.keyCode == 13))}
+                    />
+                    <icon className="Chat-FullColor">
+                        <i className={this.input.icon()?.length ? this.input.icon() : 'fas fa-bolt'} />
+                    </icon>
+                    {this.inputIconHasFocus ? this.dropdownIconMatches(this.input.icon()) : null}
+                </div>
+            </div>,
+        ];
+    }
+
+    componentFormColor(options) {
+        return [
+            options.title ? <label>{options.title}</label> : null,
+            <div>
+                {options.desc ? <label>{options.desc}</label> : null}
+                <div className="Color-Input">
+                    <input
+                        class="FormControl"
+                        type="text"
+                        bidi={options.stream}
+                        placeholder={options.placeholder}
+                        onupdate={this.formInputOnUpdate.bind(this)}
+                    />
+                    <color className="Chat-FullColor" />
+                </div>
+            </div>,
+        ];
+    }
+
+    dropdownIconMatches(search) {
+        let inputIcon = this.input.icon();
+        let iconState = this.input.iconState;
+
+        if (inputIcon !== iconState.lastInput) {
+            iconState.matches = fa5IconsList.filter((icon) => icon.includes(inputIcon));
+            if (iconState.matches.length > 5) iconState.matches = iconState.matches.sort((a, b) => 0.5 - Math.random());
+
+            iconState.lastInput = inputIcon;
+        }
+
+        return inputIcon.length && iconState.matches.length > 0 && !(iconState.matches.length == 1 && iconState.matches[0] === inputIcon) ? (
+            <ul className="Dropdown-menu Dropdown--Icons Search-results">
+                <li className="Dropdown-header">Font Awesome 5</li>
+                {iconState.matches.slice(-5).map((icon) => (
+                    <li className="IconSearchResult" onclick={(e) => this.input.icon(icon)}>
+                        <icon className="Chat-FullColor">
+                            <i className={icon}></i>
+                        </icon>
+                        <span>{highlight(icon, inputIcon)}</span>
+                    </li>
+                ))}
+            </ul>
+        ) : null;
+    }
+
+    formInputOnUpdate(vnode) {
+        $('.Chat-FullColor').css({ color: this.input.color(), backgroundColor: this.input.color() });
     }
 
     componentFormInput(options) {

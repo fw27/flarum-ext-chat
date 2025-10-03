@@ -83,6 +83,9 @@ return [
         ->serializeToForum('xelson-chat.settings.charlimit', 'xelson-chat.settings.charlimit')
         ->serializeToForum('xelson-chat.settings.display.minimize', 'xelson-chat.settings.display.minimize')
         ->serializeToForum('xelson-chat.settings.display.censor', 'xelson-chat.settings.display.censor'),
+     
+    (new Extend\ServiceProvider())
+    ->register(Providers\BlomstraRealtimeProvider::class),
 
     (new Extend\Event)->subscribe(Listener\PushChatEvents::class)
 ];

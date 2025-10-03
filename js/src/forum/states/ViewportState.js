@@ -33,11 +33,17 @@ export default class ViewportState {
     };
 
     initChatStorage(model) {
+        if (!model || !model.id) return;
+        
         this.chatStorage.key = `neonchat.viewport${model.id()}`;
-        let parsedData = JSON.parse(localStorage.getItem(this.chatStorage.key));
-
-        if (parsedData) {
-            this.chatStorage.draft = parsedData.draft ?? '';
+        try {
+            let parsedData = JSON.parse(localStorage.getItem(this.chatStorage.key));
+            if (parsedData) {
+                this.chatStorage.draft = parsedData.draft ?? '';
+            }
+        } catch (e) {
+            console.warn('Error parsing chat storage:', e);
+            this.chatStorage.draft = '';
         }
     }
 
@@ -46,11 +52,16 @@ export default class ViewportState {
     }
 
     setChatStorageValue(key, value) {
-        let cachedState = JSON.parse(localStorage.getItem(this.chatStorage.key)) ?? {};
-        cachedState[key] = value;
-        localStorage.setItem(this.chatStorage.key, JSON.stringify(cachedState));
-
-        this.chatStorage[key] = value;
+        if (!this.chatStorage.key) return;
+        
+        try {
+            let cachedState = JSON.parse(localStorage.getItem(this.chatStorage.key)) ?? {};
+            cachedState[key] = value;
+            localStorage.setItem(this.chatStorage.key, JSON.stringify(cachedState));
+            this.chatStorage[key] = value;
+        } catch (e) {
+            console.warn('Error setting chat storage value:', e);
+        }
     }
 
     onChatMessageClicked(eventName, model) {
@@ -71,7 +82,12 @@ export default class ViewportState {
     }
 
     getChatInput() {
-        return document.querySelector('.NeonChatFrame #chat-input');
+        const input = document.querySelector('.NeonChatFrame #chat-input');
+        if (!input) {
+            console.warn('Chat input element not found');
+            return null;
+        }
+        return input;
     }
 
     messageSend() {
@@ -107,9 +123,13 @@ export default class ViewportState {
         this.messageEditing = model;
 
         let inputElement = this.getChatInput();
-        inputElement.value = this.input.content(model.oldContent);
-        inputElement.focus();
-        app.chat.input.resizeInput();
+        if (inputElement) {
+            inputElement.value = this.input.content(model.oldContent);
+            inputElement.focus();
+            if (app.chat.input && app.chat.input.resizeInput) {
+                app.chat.input.resizeInput();
+            }
+        }
 
         m.redraw();
     }
@@ -162,6 +182,8 @@ export default class ViewportState {
         this.input.content((this.input.content() || '') + ` @${user.username()} `);
 
         var input = this.getChatInput();
-        input.focus();
+        if (input) {
+            input.focus();
+        }
     }
 }

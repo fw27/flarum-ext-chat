@@ -1,7 +1,27 @@
-@color-hr: #313946;
-@color-chatlist-hr: #ff649d;
-@color-chatlist-bg: #fde1eb;
+// Modern Glass Morphism Color Scheme - Slightly Lighter Dark Tone
+@color-hr: rgba(0, 0, 0, 0.2);
+@color-chatlist-hr: rgba(0, 0, 0, 0.25);
+@color-chatlist-bg: rgba(0, 0, 0, 0.15);
 
-@color-message-odd: #f5f7f9;
-@color-chat-selected: #ff4593;
-@color-chat-hovered: #ff94c1;
+@color-message-odd: rgba(0, 0, 0, 0.1);
+@color-chat-selected: rgba(0, 122, 255, 0.3);
+@color-chat-hovered: rgba(0, 122, 255, 0.15);
+
+// Glass morphism base colors - lighter dark tone
+@glass-primary: rgba(0, 0, 0, 0.2);
+@glass-secondary: rgba(0, 0, 0, 0.1);
+@glass-border: rgba(255, 255, 255, 0.1);
+
+// =========================
+// Text colors (defaults: dark mode)
+// =========================
+body when (@config-dark-mode = true) {
+  @glass-text: rgba(255, 255, 255, 0.95);
+  @glass-text-muted: rgba(255, 255, 255, 0.7);
+}
+
+// =========================
+// Light mode overrides
+// =========================
+@glass-text: rgba(0, 0, 0, 0.87);
+@glass-text-muted: rgba(0, 0, 0, 0.54);
